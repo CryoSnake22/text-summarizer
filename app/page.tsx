@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ModeToggle } from "@/components/mode-toggle";
 
 type Action = "summarize" | "bullets";
 
@@ -52,7 +53,10 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-start justify-center bg-background px-4 py-16">
       <main className="flex w-full max-w-2xl flex-col gap-8">
-        <h1 className="text-3xl font-bold tracking-tight">Text Summarizer</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Text Summarizer</h1>
+          <ModeToggle />
+        </div>
 
         <Textarea
           placeholder="Paste your text here..."
