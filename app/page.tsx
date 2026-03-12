@@ -1,64 +1,112 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+type Action = "summarize" | "bullets";
 
 export default function Home() {
+  const [inputText, setInputText] = useState("");
+  const [selectedAction, setSelectedAction] = useState<Action>("summarize");
+  const [outputText, setOutputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleSubmit() {
+    if (!inputText.trim() || isLoading) return;
+    setIsLoading(true);
+    setOutputText("");
+    try {
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: inputText, action: selectedAction }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Request failed");
+      setOutputText(data.result);
+    } catch (err) {
+      setOutputText(
+        `Error: ${err instanceof Error ? err.message : "Something went wrong. Please try again."}`,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(outputText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex min-h-screen items-start justify-center bg-background px-4 py-16">
+      <main className="flex w-full max-w-2xl flex-col gap-8">
+        <h1 className="text-3xl font-bold tracking-tight">Text Summarizer</h1>
+
+        <Textarea
+          placeholder="Paste your text here..."
+          className="min-h-48 resize-y"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <div className="flex items-center gap-4">
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={selectedAction}
+            onValueChange={(v) => {
+              if (v) setSelectedAction(v as Action);
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <ToggleGroupItem value="summarize">Summarize</ToggleGroupItem>
+            <ToggleGroupItem value="bullets">
+              Extract Bullet Points
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          <Button
+            onClick={handleSubmit}
+            disabled={!inputText.trim() || isLoading}
           >
-            Documentation
-          </a>
+            {isLoading ? "Processing..." : "Submit"}
+          </Button>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Output</CardTitle>
+            {outputText && (
+              <CardAction>
+                <Button variant="outline" size="sm" onClick={handleCopy}>
+                  {copied ? "Copied!" : "Copy"}
+                </Button>
+              </CardAction>
+            )}
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p className="text-muted-foreground animate-pulse">Processing…</p>
+            ) : outputText ? (
+              <p className="whitespace-pre-wrap">{outputText}</p>
+            ) : (
+              <p className="text-muted-foreground">
+                Your result will appear here.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

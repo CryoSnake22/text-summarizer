@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /Users/charlo/dev/nextjs/text-summarizer/ | grep -E \"\\\\.json$|\\\\.mjs$|\\\\.config\")",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__search_items_in_registries",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "mcp__shadcn__get_add_command_for_items",
+      "Bash(pnpm dlx:*)",
+      "mcp__next-devtools__nextjs_index",
+      "mcp__next-devtools__nextjs_call",
+      "Bash(cat /Users/charlo/dev/nextjs/text-summarizer/node_modules/shadcn/package.json | python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('version:', p['version']\\); print\\('exports:', json.dumps\\(p.get\\('exports',{}\\), indent=2\\)\\)\")",
+      "mcp__next-devtools__browser_eval"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "next-devtools",
+    "shadcn"
+  ]
+}
